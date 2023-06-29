@@ -7,7 +7,7 @@ const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs')
 const User = require('./Model/user')
 const jwt = require('jsonwebtoken')
-
+const PORT = process.env.PORT || 3030;
 
 const JWT_SECRET = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk'
 
