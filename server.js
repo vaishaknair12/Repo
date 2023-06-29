@@ -65,7 +65,7 @@ app.post('/api/signin', async (req, res) => {
 		return res.json({ status: 'Success', data: token })
 	}
 
-	res.json({ status: 'Failure', error: 'Invalid username/password' })
+	res.json({ status: 'Failure', error: 'Invalid email/password' })
 })
 
 app.listen(3000 , () =>{
