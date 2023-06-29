@@ -31,7 +31,7 @@ app.post('/api/signup', async(req, res) => {
             email,
             password
         })
-        console.log("user created successfully:", response)
+        console.log("user created successfully:", response  )
         console.log(response)
     }catch(error){
         if(error.code === 11000)
