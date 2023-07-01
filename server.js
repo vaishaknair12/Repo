@@ -68,9 +68,9 @@ app.post('/api/signin', async (req, res) => {
 	res.json({ status: 'Failure', error: 'Invalid email/password' })
 })
 
-app.get('/', function(req, res){
-    res.render('index.ejs');
-  });
+//app.get('/', function(req, res){
+   // res.render('index.ejs');
+  //});
 
 app.listen(3000 , () =>{
     console.log("server listened")
