@@ -48,7 +48,7 @@ app.post('/api/signin', async (req, res) => {
 	const user = await User.findOne({ email }).lean()
 
 	if (!user) {
-		return res.json({ status: 'error', error: 'Invalid email/password' })
+		return res.json({ status: 'error', error: 'Invalid email/password'})
 	}
 
 	if (await bcrypt.compare(password, user.password)) {
