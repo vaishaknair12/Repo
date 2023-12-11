@@ -12,29 +12,25 @@ mongoURI = "mongodb://localhost:27017"
 //     useUnifiedTopology : true,
 // })
 
-const apiUrl = 'https://itunes.apple.com/search?term=artist_name&entity=song';
+const musicUrl = 'https://itunes.apple.com/search?term=artist_name&entity=song';
 
 
-app.get('/fetch-and-store', async (req, res) => {
+app.get('/FetchStore', async (req, res) => {
     try {
-      const apiData = await axios.get(apiUrl);
-      const dataToStore = apiData.data.results;
-      console.log('apiData', apiData)
-      console.log('data',dataToStore)
-
+      const musicData = await axios.get(musicUrl);
+      const storing = musicData.data.results;
+      console.log('musicData', musicData) 
+      console.log('storing',storing)
        const client = await MongoClient.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true });
        const db = client.db('test');
       const collection = db.collection('users');
-  
-      await collection.insertMany(dataToStore);
-      
-  
+      await collection.insertMany(storing);
       client.close();
   
       res.json({ message: 'Data fetched and stored successfully.' });
     } catch (error) {
       console.error('Error:', error.message);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: ' Server Error' });
     }
   });
 
@@ -53,7 +49,7 @@ app.get('/fetch-and-store', async (req, res) => {
     }
   })
 
-  app.put('/updateData', async (req, res) => {
+  app.put('/update', async (req, res) => {
     try{
         const client = await MongoClient.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true });
         const db = client.db('test');
@@ -64,12 +60,9 @@ app.get('/fetch-and-store', async (req, res) => {
         { _id: objectId },
         { $set: values } // Update with the data from the request body
       );
-      console.log(result)
-  
+      console.log(result) 
       console.log('Document updated:', result);
-  
-      client.close();
-  
+      client.close(); 
       res.json({ message: 'Document updated successfully' });
     }
     catch(error){
@@ -78,7 +71,7 @@ app.get('/fetch-and-store', async (req, res) => {
   })
 
 
-  app.delete('/deleteData', async (req, res) => {
+  app.delete('/delete', async (req, res) => {
     try{
         const client = await MongoClient.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true });
         const db = client.db('test');
@@ -90,12 +83,41 @@ app.get('/fetch-and-store', async (req, res) => {
         { $set: values } // Update with the data from the request body
       );
       console.log(result)
-  
       console.log('Document deleted:', result);
-  
       client.close();
-  
       res.json({ message: 'Document deleted successfully' });
+    }
+    catch(error){
+        console.log(error)
+    }
+  })
+
+
+  app.post('/search', async (req, res) => {
+    try{
+        const client = await MongoClient.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true });
+        const db = client.db('test');
+       const collection = db.collection('users');
+       const allData = await collection.find({}).toArray();
+        const agg = [
+            [
+                {
+                  '$match': {
+                    '$or': [
+                      {
+                        'trackName': req.body.trackName
+                      }, {
+                        'artistName': req.body.artistName
+                      }, {
+                        'trackCensoredName': req.body.trackCensoredName
+                      }
+                    ]
+                  }
+                }
+              ]
+        ]
+        var result = await allData.aggregate(agg).toArray();
+        res.send(result)
     }
     catch(error){
         console.log(error)
