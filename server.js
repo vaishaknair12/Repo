@@ -16,7 +16,7 @@ mongoose.connect('mongodb://localhost:27017', {
     useNewUrlParser :true,
     useUnifiedTopology : true,
 })
-
+ 
 
 app.post('/api/signup', async(req, res) => {
     console.log(req.body)
