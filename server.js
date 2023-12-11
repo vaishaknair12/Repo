@@ -1,72 +1,107 @@
 const express = require('express')
 const path = require('path')
 const app = express()
-const bodyparser = require('body-parser')
-app.use(bodyparser.json())
 const mongoose = require('mongoose')
-const bcrypt = require('bcryptjs')
-const User = require('./Model/user')
-const jwt = require('jsonwebtoken')
 const PORT = process.env.PORT || 3030;
+const axios = require('axios')
+const { MongoClient, ObjectId } = require('mongodb');
+mongoURI = "mongodb://localhost:27017"
 
-const JWT_SECRET = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk'
+// mongoose.connect('mongodb://localhost:27017', {
+//     useNewUrlParser :true,
+//     useUnifiedTopology : true,
+// })
+
+const apiUrl = 'https://itunes.apple.com/search?term=artist_name&entity=song';
 
 
-mongoose.connect('mongodb://localhost:27017', {
-    useNewUrlParser :true,
-    useUnifiedTopology : true,
-})
- 
+app.get('/fetch-and-store', async (req, res) => {
+    try {
+      const apiData = await axios.get(apiUrl);
+      const dataToStore = apiData.data.results;
+      console.log('apiData', apiData)
+      console.log('data',dataToStore)
 
-app.post('/api/signup', async(req, res) => {
-    console.log(req.body)
-    const { firstname, lastname , email, password : plainTextPassword } = req.body
-    console.log(req.body)
-    const password = await bcrypt.hash(plainTextPassword, 10)
-
-    try{
-        const response =  await User.create({
-            firstname,
-            lastname,
-            email,
-            password
-        })
-        console.log("user created successfully:", response  )
-        console.log(response)
-    }catch(error){
-        if(error.code === 11000)
-        {
-        console.log(error)
-        return res.json("duplicate error")
-        }
+       const client = await MongoClient.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true });
+       const db = client.db('test');
+      const collection = db.collection('users');
+  
+      await collection.insertMany(dataToStore);
+      
+  
+      client.close();
+  
+      res.json({ message: 'Data fetched and stored successfully.' });
+    } catch (error) {
+      console.error('Error:', error.message);
+      res.status(500).json({ error: 'Internal Server Error' });
     }
-    res.json({ status: 'ok' })
-})
+  });
 
-app.post('/api/signin', async (req, res) => {
-	const { email, password } = req.body
-	const user = await User.findOne({ email }).lean()
 
-	if (!user) {
-		return res.json({ status: 'error', error: 'Invalid email/password'})
-	}
+  app.get('/getData', async (req, res) => {
+    try{
+        const client = await MongoClient.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true });
+        const db = client.db('test');
+       const collection = db.collection('users');
+       console.log(collection)
+       const result = await collection.find({}).toArray();
+       res.send(result)
+    }
+    catch(error){
+        console.log(error)
+    }
+  })
 
-	if (await bcrypt.compare(password, user.password)) {
-		// the username, password combination is successful
+  app.put('/updateData', async (req, res) => {
+    try{
+        const client = await MongoClient.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true });
+        const db = client.db('test');
+       const collection = db.collection('users');
+       const objectId = new ObjectId(req.body._id);
+       var values = req.body.values
+       const result = await collection.updateOne(
+        { _id: objectId },
+        { $set: values } // Update with the data from the request body
+      );
+      console.log(result)
+  
+      console.log('Document updated:', result);
+  
+      client.close();
+  
+      res.json({ message: 'Document updated successfully' });
+    }
+    catch(error){
+        console.log(error)
+    }
+  })
 
-		const token = jwt.sign(
-			{
-				id: user._id,
-				email: user.email
-			},
-			JWT_SECRET
-		)
 
-		return res.json({ status: 'Success', data: token })
-	}
+  app.delete('/deleteData', async (req, res) => {
+    try{
+        const client = await MongoClient.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true });
+        const db = client.db('test');
+       const collection = db.collection('users');
+       const objectId = new ObjectId(req.body._id);
+       var values = req.body.values
+       const result = await collection.deleteOne(
+        { _id: objectId },
+        { $set: values } // Update with the data from the request body
+      );
+      console.log(result)
+  
+      console.log('Document deleted:', result);
+  
+      client.close();
+  
+      res.json({ message: 'Document deleted successfully' });
+    }
+    catch(error){
+        console.log(error)
+    }
+  })
 
-	res.json({ status: 'Failure', error: 'Invalid email/password' })
-})
 
 //app.get('/', function(req, res){
    // res.render('index.ejs');
