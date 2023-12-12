@@ -105,19 +105,21 @@ app.get('/FetchStore', async (req, res) => {
                   '$match': {
                     '$or': [
                       {
-                        'trackName': req.body.trackName
+                        'trackName': "Artist Name"
                       }, {
-                        'artistName': req.body.artistName
+                        'artistName':""
                       }, {
-                        'trackCensoredName': req.body.trackCensoredName
+                        'trackCensoredName': ""
                       }
                     ]
                   }
                 }
               ]
         ]
-        var result = await allData.aggregate(agg).toArray();
-        res.send(result)
+        console.log(agg)
+        var result= await collection.aggregate(agg);
+        console.log(result)
+       res.send(result)
     }
     catch(error){
         console.log(error)
